@@ -1,0 +1,38 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model DigitalTwinSession {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Input Data
+  inputMode       String   // "TEXT" | "LAB_REPORT"
+  rawInputText    String?  @db.Text
+  labReportUrl    String?
+
+  // Mapped/Organ Output (JSON array of highlighted organs & mesh names)
+  // Structure: [{ organId: "liver", meshName: "mesh_liver_main", severity: "high", colorHex: "#EF4444", reasoning: "..." }]
+  highlightedOrgans Json   
+
+  // Grounded AI Reasoning & HOLON Context
+  // Structure: { summaryNote: "...", holonConcepts: [...], possibleConditions: [...] }
+  aiAnalysis       Json
+
+  // Simulation State (Before / After Delta)
+  // Structure: { active: boolean, toggleType: "QUIT_SMOKING" | "LOSE_10KG", deltaSummary: "...", updatedOrgans: [...] }
+  simulationState Json?
+
+  @@index([createdAt])
+}

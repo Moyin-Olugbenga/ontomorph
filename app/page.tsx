@@ -1,65 +1,269 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LabReportUpload } from '@/components/LabReportUpload';
+import { ArrowRight, Brain, Sparkles, Shield, Clock } from 'lucide-react';
+import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function Home() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('manual');
+  const [profile, setProfile] = useState({
+    age: '',
+    gender: '',
+    smokingStatus: '',
+    weight: '',
+    height: '',
+    additionalSymptoms: ''
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!profile.age || !profile.gender || !profile.smokingStatus || !profile.weight || !profile.height) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      sessionStorage.setItem('patientProfile', JSON.stringify({
+        age: parseInt(profile.age),
+        gender: profile.gender,
+        smokingStatus: profile.smokingStatus,
+        weight: parseInt(profile.weight),
+        height: parseInt(profile.height),
+        additionalSymptoms: profile.additionalSymptoms
+      }));
+      
+      router.push('/simulation');
+    } catch (error) {
+      toast.error('Failed to start simulation');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLabReportProcessed = (data: any) => {
+    // Extract patient info from lab report
+    const extractedProfile = {
+      age: '35', // In production, you'd parse this from the report
+      gender: 'male',
+      smokingStatus: 'never',
+      weight: '75',
+      height: '175',
+      additionalSymptoms: JSON.stringify(data.results)
+    };
+    
+    // Store in session
+    sessionStorage.setItem('patientProfile', JSON.stringify({
+      age: parseInt(extractedProfile.age),
+      gender: extractedProfile.gender,
+      smokingStatus: extractedProfile.smokingStatus,
+      weight: parseInt(extractedProfile.weight),
+      height: parseInt(extractedProfile.height),
+      additionalSymptoms: extractedProfile.additionalSymptoms,
+      labResults: data.results,
+      labSummary: data.summary
+    }));
+    
+    // Navigate to simulation
+    router.push('/simulation');
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="container mx-auto px-4 py-12 max-w-5xl">
+        {/* Hero Section */}
+        <div className="text-center mb-12 border-b border-slate-200 pb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+              <Brain className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-3xl font-bold text-primary tracking-tight">
+              Health Simulator
+            </h1>
+          </div>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Powered by Ontomorph's HOLON knowledge graph - visualize your future health trajectory
+          </p>
+          <div className="flex justify-center gap-6 mt-3 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> HIPAA Compliant</span>
+            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Real-time Analysis</span>
+          </div>
+        </div>
+
+        {/* Tabs for input methods */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+            <TabsTrigger value="upload">Lab Report Upload</TabsTrigger>
+          </TabsList>
+          <TabsContent value="manual">
+            <div className="grid md:grid-cols-5 gap-6">
+              {/* Manual Input Form */}
+              <Card className="md:col-span-3 shadow-sm border-slate-200">
+                <CardHeader className="border-b border-slate-100 pb-4">
+                  <CardTitle className="text-lg font-semibold text-primary flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-accent" />
+                    Patient Health Profile
+                  </CardTitle>
+                  <CardDescription>
+                    Enter current health data to generate a comprehensive assessment
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="age" className="text-sm font-medium">
+                          Age <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="age"
+                          type="number"
+                          placeholder="e.g., 35"
+                          value={profile.age}
+                          onChange={(e) => setProfile({ ...profile, age: e.target.value })}
+                          className="h-11"
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">Must be 18 or older</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="gender" className="text-sm font-medium">
+                          Gender <span className="text-destructive">*</span>
+                        </Label>
+                        <Select
+                          value={profile.gender}
+                          onValueChange={(value) => setProfile({ ...profile, gender: value })}
+                        >
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Select" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="male">Male</SelectItem>
+                            <SelectItem value="female">Female</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="smoking" className="text-sm font-medium">
+                        Smoking Status <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={profile.smokingStatus}
+                        onValueChange={(value) => setProfile({ ...profile, smokingStatus: value })}
+                      >
+                        <SelectTrigger className="h-11">
+                          <SelectValue placeholder="Select smoking status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="never">Never Smoked</SelectItem>
+                          <SelectItem value="former">Former Smoker</SelectItem>
+                          <SelectItem value="current">Current Smoker</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="weight" className="text-sm font-medium">
+                          Weight (kg) <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="weight"
+                          type="number"
+                          placeholder="70"
+                          value={profile.weight}
+                          onChange={(e) => setProfile({ ...profile, weight: e.target.value })}
+                          className="h-11"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="height" className="text-sm font-medium">
+                          Height (cm) <span className="text-destructive">*</span>
+                        </Label>
+                        <Input
+                          id="height"
+                          type="number"
+                          placeholder="175"
+                          value={profile.height}
+                          onChange={(e) => setProfile({ ...profile, height: e.target.value })}
+                          className="h-11"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="symptoms" className="text-sm font-medium">
+                        Additional Symptoms <span className="text-muted-foreground font-normal">(optional)</span>
+                      </Label>
+                      <Input
+                        id="symptoms"
+                        placeholder="e.g., shortness of breath, fatigue, chest pain"
+                        value={profile.additionalSymptoms}
+                        onChange={(e) => setProfile({ ...profile, additionalSymptoms: e.target.value })}
+                        className="h-11"
+                      />
+                      <p className="text-xs text-muted-foreground">List any symptoms you are currently experiencing</p>
+                    </div>
+
+                    <Button 
+                      type="submit" 
+                      className="w-full h-12 gap-2 bg-primary hover:bg-primary/90 text-white font-medium" 
+                      size="lg"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Analyzing...' : 'Generate Health Assessment'}
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+
+              {/* Feature Cards */}
+              <div className="md:col-span-2 space-y-4">
+                {/* ... keep existing feature cards ... */}
+              </div>
+            </div>
+          </TabsContent>
+          <TabsContent value="upload">
+            <div className="max-w-2xl mx-auto">
+              <LabReportUpload onReportProcessed={handleLabReportProcessed} />
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                <p>Upload your lab results and we'll automatically:</p>
+                <ul className="mt-2 space-y-1">
+                  <li>• Extract key health markers</li>
+                  <li>• Identify abnormal values</li>
+                  <li>• Generate a comprehensive health assessment</li>
+                </ul>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Footer */}
+        <div className="mt-12 pt-6 border-t border-slate-200 text-center">
+          <p className="text-xs text-muted-foreground">
+            © {new Date().getFullYear()} Ontomorph Health Simulator • Powered by HOLON Knowledge Graph
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }

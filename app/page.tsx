@@ -7,15 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LabReportUpload } from '@/components/LabReportUpload';
-import { ArrowRight, Brain, Sparkles, Shield, Clock } from 'lucide-react';
-import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LabReportUpload } from '@/components/LabReportUpload';
+import { ArrowRight, Brain, Sparkles, Shield, Clock, Heart } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Home() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('manual');
   const [profile, setProfile] = useState({
     age: '',
     gender: '',
@@ -54,9 +53,8 @@ export default function Home() {
   };
 
   const handleLabReportProcessed = (data: any) => {
-    // Extract patient info from lab report
     const extractedProfile = {
-      age: '35', // In production, you'd parse this from the report
+      age: '35',
       gender: 'male',
       smokingStatus: 'never',
       weight: '75',
@@ -64,7 +62,6 @@ export default function Home() {
       additionalSymptoms: JSON.stringify(data.results)
     };
     
-    // Store in session
     sessionStorage.setItem('patientProfile', JSON.stringify({
       age: parseInt(extractedProfile.age),
       gender: extractedProfile.gender,
@@ -76,14 +73,12 @@ export default function Home() {
       labSummary: data.summary
     }));
     
-    // Navigate to simulation
     router.push('/simulation');
   };
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
       <div className="container mx-auto px-4 py-12 max-w-5xl">
-        {/* Hero Section */}
         <div className="text-center mb-12 border-b border-slate-200 pb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
@@ -94,7 +89,7 @@ export default function Home() {
             </h1>
           </div>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Powered by Ontomorph's HOLON knowledge graph - visualize your future health trajectory
+            Powered by Ontomorph's HOLON knowledge graph — visualize your future health trajectory
           </p>
           <div className="flex justify-center gap-6 mt-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> HIPAA Compliant</span>
@@ -102,15 +97,13 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Tabs for input methods */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <Tabs defaultValue="manual" className="mb-6">
           <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
             <TabsTrigger value="manual">Manual Entry</TabsTrigger>
             <TabsTrigger value="upload">Lab Report Upload</TabsTrigger>
           </TabsList>
           <TabsContent value="manual">
             <div className="grid md:grid-cols-5 gap-6">
-              {/* Manual Input Form */}
               <Card className="md:col-span-3 shadow-sm border-slate-200">
                 <CardHeader className="border-b border-slate-100 pb-4">
                   <CardTitle className="text-lg font-semibold text-primary flex items-center gap-2">
@@ -236,28 +229,45 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              {/* Feature Cards */}
               <div className="md:col-span-2 space-y-4">
-                {/* ... keep existing feature cards ... */}
+                <Card className="border-l-4 border-l-accent shadow-sm">
+                  <CardContent className="pt-6">
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-accent/10 rounded-lg">
+                          <Heart className="w-4 h-4 text-accent" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm">Predictive Health</h4>
+                          <p className="text-xs text-muted-foreground">
+                            See 5-year projections based on lifestyle changes
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-accent/10 rounded-lg">
+                          <Brain className="w-4 h-4 text-accent" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-sm">HOLON Grounded</h4>
+                          <p className="text-xs text-muted-foreground">
+                            5.3M clinical concepts powering your assessment
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </div>
           </TabsContent>
           <TabsContent value="upload">
             <div className="max-w-2xl mx-auto">
               <LabReportUpload onReportProcessed={handleLabReportProcessed} />
-              <div className="mt-4 text-center text-sm text-muted-foreground">
-                <p>Upload your lab results and we'll automatically:</p>
-                <ul className="mt-2 space-y-1">
-                  <li>• Extract key health markers</li>
-                  <li>• Identify abnormal values</li>
-                  <li>• Generate a comprehensive health assessment</li>
-                </ul>
-              </div>
             </div>
           </TabsContent>
         </Tabs>
 
-        {/* Footer */}
         <div className="mt-12 pt-6 border-t border-slate-200 text-center">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Ontomorph Health Simulator • Powered by HOLON Knowledge Graph

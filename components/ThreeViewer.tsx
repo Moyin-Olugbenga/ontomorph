@@ -10,28 +10,61 @@ import { ORGAN_STATUS_COLORS } from '@/lib/organs.config';
 interface ThreeViewerProps {
   organs: OrganHealth[];
   onOrganClick?: (organ: OrganHealth) => void;
+  animationData?: {
+    organUpdates: Array<{
+      organId: string;
+      status: string;
+      colorHex: string;
+      intensity: number;
+      animationType: string;
+    }>;
+    narration: string;
+  } | null;
+  isSimulated?: boolean;
 }
 
-function OrganMesh({ organ, onClick }: { organ: OrganHealth; onClick?: () => void }) {
+function OrganMesh({ 
+  organ, 
+  onClick, 
+  animationData,
+  isSimulated 
+}: { 
+  organ: OrganHealth; 
+  onClick?: () => void;
+  animationData?: ThreeViewerProps['animationData'];
+  isSimulated?: boolean;
+}) {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isHovered, setIsHovered] = useState(false);
-  const color = ORGAN_STATUS_COLORS[organ.status];
   
-  // Pulsing animation for affected organs
+  const animUpdate = animationData?.organUpdates?.find(u => u.organId === organ.id);
+  const color = animUpdate?.colorHex || ORGAN_STATUS_COLORS[organ.status];
+  const intensity = animUpdate?.intensity || 1;
+  const animType = animUpdate?.animationType || 'idle';
+  
   useFrame(({ clock }) => {
     if (meshRef.current) {
-      if (organ.status === 'affected') {
+      let scale = 1;
+      
+      if (animType === 'pulse') {
         const pulse = Math.sin(clock.getElapsedTime() * 3) * 0.05 + 1;
-        meshRef.current.scale.set(pulse, pulse, pulse);
+        scale = pulse * intensity;
+      } else if (animType === 'fade') {
+        const fade = Math.sin(clock.getElapsedTime() * 1.5) * 0.1 + 0.9;
+        scale = fade * intensity;
+      } else if (isSimulated && organ.status === 'healthy') {
+        const glow = Math.sin(clock.getElapsedTime() * 1) * 0.03 + 1;
+        scale = glow * intensity;
       }
+      
       if (isHovered) {
-        const scale = 1 + Math.sin(clock.getElapsedTime() * 2) * 0.02;
-        meshRef.current.scale.set(scale, scale, scale);
+        scale *= 1.05;
       }
+      
+      meshRef.current.scale.set(scale, scale, scale);
     }
   });
 
-  // Build organ geometry based on type
   const buildOrgan = () => {
     const size = organ.size * 0.6;
     
@@ -71,7 +104,6 @@ function OrganMesh({ organ, onClick }: { organ: OrganHealth; onClick?: () => voi
       case 'lungs':
         return (
           <group>
-            {/* Left lung */}
             <mesh position={[-size * 0.5, 0, 0]} ref={meshRef}>
               <capsuleGeometry args={[size * 0.35, size * 0.6, 8, 16]} />
               <meshStandardMaterial 
@@ -84,7 +116,6 @@ function OrganMesh({ organ, onClick }: { organ: OrganHealth; onClick?: () => voi
                 opacity={organ.status === 'healthy' ? 0.85 : 1}
               />
             </mesh>
-            {/* Right lung */}
             <mesh position={[size * 0.5, 0, 0]}>
               <capsuleGeometry args={[size * 0.35, size * 0.6, 8, 16]} />
               <meshStandardMaterial 
@@ -237,7 +268,6 @@ function OrganMesh({ organ, onClick }: { organ: OrganHealth; onClick?: () => voi
         </group>
       </Float>
       
-      {/* Organ label */}
       <Text
         position={[0, organ.size * 0.9, 0]}
         fontSize={0.2}
@@ -250,11 +280,25 @@ function OrganMesh({ organ, onClick }: { organ: OrganHealth; onClick?: () => voi
       >
         {organ.name}
       </Text>
+      
+      {isSimulated && organ.status === 'healthy' && (
+        <Text
+          position={[0, organ.size * 1.3, 0]}
+          fontSize={0.15}
+          color="#4CAF50"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.02}
+          outlineColor="#000000"
+        >
+          ✨
+        </Text>
+      )}
     </group>
   );
 }
 
-export function ThreeViewer({ organs, onOrganClick }: ThreeViewerProps) {
+export function ThreeViewer({ organs, onOrganClick, animationData, isSimulated }: ThreeViewerProps) {
   return (
     <div className="w-full h-full rounded-lg overflow-hidden bg-gradient-to-b from-slate-900 to-slate-800 relative">
       <Canvas camera={{ position: [0, 0.5, 8] }}>
@@ -275,7 +319,6 @@ export function ThreeViewer({ organs, onOrganClick }: ThreeViewerProps) {
           target={[0, 0.3, 0]}
         />
         
-        {/* Body silhouette */}
         <mesh position={[0, 0.3, 0]} scale={[0.9, 1.1, 0.4]}>
           <sphereGeometry args={[2.2, 32, 32]} />
           <meshStandardMaterial 
@@ -291,11 +334,12 @@ export function ThreeViewer({ organs, onOrganClick }: ThreeViewerProps) {
             key={organ.id}
             organ={organ}
             onClick={() => onOrganClick?.(organ)}
+            animationData={animationData}
+            isSimulated={isSimulated}
           />
         ))}
       </Canvas>
       
-      {/* Legend */}
       <div className="absolute bottom-4 left-4 bg-black/60 backdrop-blur-sm rounded-lg p-3 text-white text-xs">
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
@@ -313,10 +357,15 @@ export function ThreeViewer({ organs, onOrganClick }: ThreeViewerProps) {
         </div>
       </div>
       
-      {/* Instructions */}
       <div className="absolute bottom-4 right-4 text-white/60 text-xs bg-black/40 backdrop-blur-sm px-3 py-1.5 rounded-full">
         🖱 Click or tap any organ
       </div>
+      
+      {isSimulated && (
+        <div className="absolute top-4 right-4 bg-blue-500/80 backdrop-blur-sm px-3 py-1.5 rounded-full text-white text-xs font-medium">
+          🔬 Simulation Active
+        </div>
+      )}
     </div>
   );
 }

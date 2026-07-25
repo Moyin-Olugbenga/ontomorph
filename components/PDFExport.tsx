@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Download, Loader2 } from 'lucide-react';
 import { OrganHealth, PatientProfile } from '@/app/types';
 import { toast } from 'sonner';
-import { PDFDocument } from './PDFDocument';
 
 interface PDFExportProps {
   organs: OrganHealth[];
@@ -38,10 +37,10 @@ export function PDFExport({
 
     setIsGenerating(true);
     try {
-      // Import dynamically to avoid SSR issues
+      // Dynamic import for PDF generation
+      const { PDFDocument } = await import('@/components/PDFDocument');
       const { pdf } = await import('@react-pdf/renderer');
       
-      // Create PDF document
       const doc = PDFDocument({
         patientProfile,
         organs,
@@ -53,10 +52,8 @@ export function PDFExport({
         simulationSummary
       });
 
-      // Generate PDF blob
       const blob = await pdf(doc).toBlob();
       
-      // Create download link
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;

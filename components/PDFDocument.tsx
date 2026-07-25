@@ -1,17 +1,6 @@
-import { Document, Page, Text, View, StyleSheet, Image, Font } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { OrganHealth, PatientProfile } from '@/app/types';
-import { ORGAN_STATUS_COLORS } from '@/lib/organs.config';
 
-// Register fonts
-Font.register({
-  family: 'Helvetica',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/helvetica/v1/helvetica.woff2', fontWeight: 'normal' },
-    { src: 'https://fonts.gstatic.com/s/helvetica/v1/helvetica-bold.woff2', fontWeight: 'bold' }
-  ]
-});
-
-// Create styles
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -88,14 +77,6 @@ const styles = StyleSheet.create({
     color: '#64748b',
     lineHeight: 1.4
   },
-  statusBadge: {
-    padding: '2px 8px',
-    borderRadius: 12,
-    fontSize: 9,
-    fontWeight: 'bold',
-    display: 'flex',
-    marginBottom: 4
-  },
   riskFactors: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -143,8 +124,7 @@ const styles = StyleSheet.create({
     padding: '4px 12px',
     borderRadius: 12,
     fontSize: 10,
-    fontWeight: 'bold',
-    display: 'flex'
+    fontWeight: 'bold'
   }
 });
 
@@ -203,11 +183,9 @@ export function PDFDocument({
             <Text style={styles.title}>Health Assessment Report</Text>
             <Text style={styles.subtitle}>Powered by Ontomorph HOLON Knowledge Graph</Text>
           </View>
-          <View>
-            {isSimulated && (
-              <Text style={styles.simulationBadge}>🔬 Projected Health</Text>
-            )}
-          </View>
+          {isSimulated && (
+            <Text style={styles.simulationBadge}>🔬 Projected Health</Text>
+          )}
         </View>
 
         {/* Patient Info */}

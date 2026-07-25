@@ -4,15 +4,14 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, X, FileText, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Upload, X, FileText, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface LabReportUploadProps {
   onReportProcessed: (data: any) => void;
-  isProcessing?: boolean;
 }
 
-export function LabReportUpload({ onReportProcessed, isProcessing = false }: LabReportUploadProps) {
+export function LabReportUpload({ onReportProcessed }: LabReportUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -20,14 +19,12 @@ export function LabReportUpload({ onReportProcessed, isProcessing = false }: Lab
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (file) {
-      // Validate file type
       const validTypes = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
       if (!validTypes.includes(file.type)) {
         toast.error('Please upload a PDF or image file');
         return;
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast.error('File size must be less than 5MB');
         return;
@@ -54,7 +51,6 @@ export function LabReportUpload({ onReportProcessed, isProcessing = false }: Lab
     setUploadProgress(0);
 
     try {
-      // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -65,39 +61,23 @@ export function LabReportUpload({ onReportProcessed, isProcessing = false }: Lab
         });
       }, 300);
 
-      // In a real implementation, you would:
-      // 1. Upload the file to a server
-      // 2. Parse the lab report using OCR or AI
-      // 3. Extract structured data
-
-      // For demo purposes, we'll simulate processing
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      // Mock extracted lab data
       const mockLabData = {
         patientName: "Patient",
         testDate: new Date().toISOString().split('T')[0],
         results: {
           hemoglobin: { value: 14.2, unit: 'g/dL', range: '12.0-16.0', status: 'normal' },
-          whiteBloodCells: { value: 7.5, unit: 'K/µL', range: '4.5-11.0', status: 'normal' },
-          platelets: { value: 250, unit: 'K/µL', range: '150-400', status: 'normal' },
           glucose: { value: 95, unit: 'mg/dL', range: '70-100', status: 'normal' },
           cholesterol: { value: 210, unit: 'mg/dL', range: '125-200', status: 'high' },
-          ldl: { value: 135, unit: 'mg/dL', range: '0-100', status: 'high' },
-          hdl: { value: 55, unit: 'mg/dL', range: '40-60', status: 'normal' },
-          triglycerides: { value: 150, unit: 'mg/dL', range: '0-150', status: 'borderline' },
-          alt: { value: 45, unit: 'U/L', range: '7-56', status: 'normal' },
-          ast: { value: 35, unit: 'U/L', range: '10-40', status: 'normal' },
-          creatinine: { value: 1.0, unit: 'mg/dL', range: '0.6-1.2', status: 'normal' },
-          bUN: { value: 14, unit: 'mg/dL', range: '7-20', status: 'normal' }
+          ldl: { value: 135, unit: 'mg/dL', range: '0-100', status: 'high' }
         },
-        summary: "Complete Blood Count (CBC) and Comprehensive Metabolic Panel (CMP) results show elevated cholesterol and LDL levels. Other markers are within normal range."
+        summary: "Lab results show elevated cholesterol and LDL levels. Other markers are within normal range."
       };
 
-      // Call the callback with extracted data
       onReportProcessed(mockLabData);
       toast.success('Lab report processed successfully!');
       

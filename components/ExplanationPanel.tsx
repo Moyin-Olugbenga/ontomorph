@@ -13,7 +13,6 @@ interface ExplanationPanelProps {
   isSimulated?: boolean;
 }
 
-// Make sure this is a named export, not default
 export function ExplanationPanel({ 
   selectedOrgan, 
   explanation, 
@@ -42,9 +41,14 @@ export function ExplanationPanel({
                   <h4 className="font-semibold">{selectedOrgan.name}</h4>
                   <Badge 
                     variant={
-                      selectedOrgan.status === 'healthy' ? 'success' : 
+                      selectedOrgan.status === 'healthy' ? 'default' : 
                       selectedOrgan.status === 'at-risk' ? 'secondary' : 
                       'destructive'
+                    }
+                    className={
+                      selectedOrgan.status === 'healthy' ? 'bg-green-500 hover:bg-green-600' :
+                      selectedOrgan.status === 'at-risk' ? 'bg-orange-500 hover:bg-orange-600' :
+                      'bg-red-500 hover:bg-red-600'
                     }
                   >
                     {ORGAN_STATUS_LABELS[selectedOrgan.status]}

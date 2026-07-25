@@ -9,16 +9,6 @@ export interface OrganHealth {
   size: number;
 }
 
-export interface OrganDetail {
-  organId: string;
-  meshName: string;
-  status: OrganStatus;
-  severity: 'low' | 'medium' | 'high';
-  colorHex: string;
-  reasoning: string;
-  explanation: string;
-}
-
 export interface PatientProfile {
   age: number;
   gender: 'male' | 'female' | 'other';
@@ -36,6 +26,22 @@ export interface SimulationResult {
   summary: string;
   riskFactors: string[];
   recommendations: string[];
+  disclaimer?: string;
+  scalarOutputs?: {
+    peak_value: number;
+    peak_month: number;
+    improvement_percentage?: number;
+  };
+  animationData?: {
+    organUpdates: Array<{
+      organId: string;
+      status: OrganStatus;
+      colorHex: string;
+      intensity: number;
+      animationType: string;
+    }>;
+    narration: string;
+  };
 }
 
 export interface AnalysisResponse {
@@ -57,39 +63,3 @@ export interface ApiAnalysisResponse {
   riskFactors: string[];
   holonReferences: string[];
 }
-
-export interface OrganHealth {
-  id: string;
-  name: string;
-  status: OrganStatus;
-  explanation: string;
-  position: [number, number, number];
-  size: number;
-}
-
-export interface OrganDetail {  // Make sure this is exported
-  organId: string;
-  meshName: string;
-  status: OrganStatus;
-  severity: 'low' | 'medium' | 'high';
-  colorHex: string;
-  reasoning: string;
-  explanation: string;
-}
-
-export interface OrganHealth {
-  id: string;
-  name: string;
-  status: OrganStatus;
-  explanation: string;
-  position: [number, number, number];
-  size: number;
-}
-
-export interface OrganShape {
-  geometry: 'sphere' | 'capsule' | 'cylinder' | 'heart' | 'bean' | 'custom';
-  scale: [number, number, number];
-  color: string;
-}
-
-

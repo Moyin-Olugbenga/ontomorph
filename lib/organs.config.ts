@@ -49,64 +49,64 @@ export const DEFAULT_ORGANS: OrganHealth[] = [
     name: 'Brain',
     status: 'healthy',
     explanation: 'Normal cognitive function. No neurological concerns.',
-    position: [0, 2.0, 0],  // Moved up
-    size: 1.2  // Increased size
+    position: [0, 2.0, 0],
+    size: 1.2
   },
   {
     id: 'heart',
     name: 'Heart',
     status: 'healthy',
     explanation: 'Normal cardiac rhythm and function.',
-    position: [-0.8, 0.8, 0.3],  // Adjusted position
-    size: 1.0  // Increased size
+    position: [-0.8, 0.8, 0.3],
+    size: 1.0
   },
   {
     id: 'lungs',
     name: 'Lungs',
     status: 'healthy',
     explanation: 'Normal respiratory function. No signs of distress.',
-    position: [0.9, 0.8, 0],  // Adjusted position
-    size: 1.1  // Increased size
+    position: [0.9, 0.8, 0],
+    size: 1.1
   },
   {
     id: 'liver',
     name: 'Liver',
     status: 'healthy',
     explanation: 'Normal hepatic function. Enzyme levels within range.',
-    position: [0.7, -0.3, 0.8],  // Adjusted position
-    size: 1.0  // Increased size
+    position: [0.7, -0.3, 0.8],
+    size: 1.0
   },
   {
     id: 'stomach',
     name: 'Stomach',
     status: 'healthy',
     explanation: 'Normal digestive function.',
-    position: [-0.5, -0.2, 1.0],  // Adjusted position
-    size: 0.9  // Increased size
+    position: [-0.5, -0.2, 1.0],
+    size: 0.9
   },
   {
     id: 'kidneys',
     name: 'Kidneys',
     status: 'healthy',
     explanation: 'Normal renal function. Filtration rate is optimal.',
-    position: [-0.9, -0.2, 0.4],  // Adjusted position
-    size: 0.8  // Increased size
+    position: [-0.9, -0.2, 0.4],
+    size: 0.8
   },
   {
     id: 'intestines',
     name: 'Intestines',
     status: 'healthy',
     explanation: 'Normal digestive function.',
-    position: [0.5, -0.8, 0.6],  // Adjusted position
-    size: 0.9  // Increased size
+    position: [0.5, -0.8, 0.6],
+    size: 0.9
   },
   {
     id: 'spine',
     name: 'Spine',
     status: 'healthy',
     explanation: 'Normal spinal alignment and function.',
-    position: [0, -0.3, -1.0],  // Moved forward so it's visible
-    size: 0.7  // Increased size
+    position: [0, -0.3, -1.0],
+    size: 0.7
   }
 ];
 

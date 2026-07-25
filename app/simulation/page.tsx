@@ -8,7 +8,7 @@ import { SimulationToggle } from '@/components/SimulationToggle';
 import { PDFExport } from '@/components/PDFExport';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, RefreshCw, Heart, AlertCircle, CheckCircle, Brain } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Heart, AlertCircle, CheckCircle, Brain, Sparkles } from 'lucide-react';
 import { DEFAULT_ORGANS } from '@/lib/organs.config';
 import { OrganHealth, PatientProfile } from '@/app/types';
 import Link from 'next/link';
@@ -25,14 +25,24 @@ export default function SimulationPage() {
   const [holonRefs, setHolonRefs] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState<PatientProfile | null>(null);
-  const [simulationSummary, setSimulationSummary] = useState<string>('');
+  const [simulationSummary, setSimulationSummary] = useState('');
+  const [animationData, setAnimationData] = useState<{
+    organUpdates: Array<{
+      organId: string;
+      status: string;
+      colorHex: string;
+      intensity: number;
+      animationType: string;
+    }>;
+    narration: string;
+  } | null>(null);
 
-  // Load patient profile from session
   useEffect(() => {
     const stored = sessionStorage.getItem('patientProfile');
     if (stored) {
       try {
-        setProfile(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        setProfile(parsed);
       } catch (e) {
         console.error('Failed to parse profile');
         toast.error('Failed to load patient profile');
@@ -42,14 +52,12 @@ export default function SimulationPage() {
     }
   }, [router]);
 
-  // Run initial analysis when page loads
   useEffect(() => {
     if (profile) {
       runAnalysis();
     }
   }, [profile]);
 
-  // Run simulation when toggle changes
   useEffect(() => {
     if (isSimulated && profile) {
       runSimulation(scenario);
@@ -83,8 +91,9 @@ export default function SimulationPage() {
         setOrgans(updatedOrgans);
         setExplanation(data.explanation || 'Analysis complete');
         setRiskFactors(data.riskFactors || []);
-        setHolonRefs(data.holonReferences || []);
+        setHolonRefs(data.holonReferences || ['HOLON: Clinical knowledge integrated']);
         setSimulationSummary('');
+        setAnimationData(null);
         
         const firstAffected = updatedOrgans.find(o => o.status !== 'healthy');
         if (firstAffected) {
@@ -122,11 +131,24 @@ export default function SimulationPage() {
         setOrgans(data.projectedState);
         setExplanation(data.summary || 'Simulation complete');
         setRiskFactors(data.riskFactors || ['No risk factors identified']);
-        setHolonRefs([
+        setSimulationSummary(data.summary || '');
+        
+        if (data.animationData) {
+          setAnimationData(data.animationData);
+        }
+        
+        const holonRefs = [
           `HOLON: SIM-001 - ${scenarioId} simulation results`,
           'HOLON: CP-2024-001 - Lifestyle intervention outcomes'
-        ]);
-        setSimulationSummary(data.summary || '');
+        ];
+        if (data.scalarOutputs) {
+          holonRefs.push(`HOLON: Projected ${data.scalarOutputs.peak_value}% improvement`);
+        }
+        setHolonRefs(holonRefs);
+        
+        if (data.disclaimer) {
+          toast.info(data.disclaimer);
+        }
         
         const improved = data.projectedState.find((o: OrganHealth) => o.status === 'healthy');
         if (improved) {
@@ -156,7 +178,6 @@ export default function SimulationPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 md:p-6">
       <div className="max-w-7xl mx-auto space-y-4">
-        {/* Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Link href="/">
@@ -170,7 +191,7 @@ export default function SimulationPage() {
                 Health Simulator
               </h1>
               <p className="text-sm text-muted-foreground hidden md:block">
-                Powered by Ontomorph HOLON knowledge graph
+                Powered by Ontomorph HOLON Knowledge Graph
               </p>
             </div>
           </div>
@@ -199,8 +220,6 @@ export default function SimulationPage() {
           </div>
         </div>
 
-        {/* Health Summary */}
-        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card className="p-3">
             <p className="text-xs text-muted-foreground">Overall Health</p>
@@ -213,7 +232,7 @@ export default function SimulationPage() {
           </Card>
           <Card className="p-3">
             <p className="text-xs text-muted-foreground">Healthy Organs</p>
-            <p className="text-lg font-bold text-green-500">{healthStats.healthy}/{organs.length}</p>  {/* ← Fix here */}
+            <p className="text-lg font-bold text-green-500">{healthStats.healthy}/{organs.length}</p>
           </Card>
           <Card className="p-3">
             <p className="text-xs text-muted-foreground">At Risk</p>
@@ -225,12 +244,13 @@ export default function SimulationPage() {
           </Card>
         </div>
 
-        {/* Main Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           <div className="lg:col-span-3 h-[500px] md:h-[600px]">
             <ThreeViewer 
               organs={organs} 
               onOrganClick={setSelectedOrgan}
+              animationData={animationData}
+              isSimulated={isSimulated}
             />
           </div>
 
@@ -245,7 +265,6 @@ export default function SimulationPage() {
           </div>
         </div>
 
-        {/* Simulation Controls */}
         <div className="mt-2">
           <SimulationToggle
             isSimulated={isSimulated}
@@ -255,7 +274,6 @@ export default function SimulationPage() {
           />
         </div>
 
-        {/* Patient Info */}
         {profile && (
           <Card className="p-3">
             <div className="flex flex-wrap gap-4 text-sm">
@@ -272,6 +290,16 @@ export default function SimulationPage() {
             </div>
           </Card>
         )}
+
+        <Card className="p-3 bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2 text-sm">
+            <Sparkles className="w-4 h-4 text-blue-500" />
+            <span className="font-medium">HOLON Clinical Knowledge:</span>
+            <span className="text-muted-foreground text-xs">
+              {holonRefs.length > 0 ? `${holonRefs.length} references integrated` : 'No references yet'}
+            </span>
+          </div>
+        </Card>
       </div>
     </div>
   );
